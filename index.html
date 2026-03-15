@@ -539,9 +539,8 @@ async function exportPDF(){
     await new Promise(res=>{
       const img=new Image();
       img.onload=()=>{
-        const ratio=img.naturalWidth/img.naturalHeight;
-        let dw=pw,dh=pw/ratio;if(dh>ph){dh=ph;dw=ph*ratio;}
-        doc.addImage(img,'JPEG',(pw-dw)/2,(ph-dh)/2,dw,dh,'','FAST');res();
+        // Full bleed — image fills entire page, no white borders
+        doc.addImage(img,'JPEG',0,0,pw,ph,'','FAST');res();
       };
       img.src=photos[i].dataUrl;
     });
