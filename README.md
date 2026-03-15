@@ -18,35 +18,6 @@ Scan handwritten notes with your phone camera and download them as a single PDF.
 
 ---
 
-## Deploy: GitHub → Vercel (Free, ~3 minutes)
-
-### Step 1 — Create a GitHub Repo
-1. Go to [github.com](https://github.com) → **New repository**
-2. Name it e.g. `snapnotes`
-3. Leave it public (Vercel free tier works with public repos)
-4. Click **Create repository**
-
-### Step 2 — Upload Files
-On the new repo page click **uploading an existing file**, then drag in all files:
-- `index.html`
-- `manifest.json`
-- `sw.js`
-- `vercel.json`
-- `README.md`
-- `icons/` folder with all 4 icons inside
-
-Click **Commit changes**.
-
-### Step 3 — Deploy on Vercel
-1. Go to [vercel.com](https://vercel.com) → Sign up free (use your GitHub account)
-2. Click **Add New → Project**
-3. Select your `snapnotes` repo → Click **Deploy**
-4. Done! You'll get a free URL like `snapnotes-abc.vercel.app`
-
-Every time you push changes to GitHub, Vercel auto-redeploys.
-
----
-
 ## Install on Mobile (PWA)
 1. Open the site in Chrome (Android) or Safari (iOS)
 2. Android: tap the 3-dot menu → **Add to Home Screen**
