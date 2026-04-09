@@ -377,7 +377,7 @@ function stopCamera(){
 
 async function flipCamera(){
   if(!multiCam)return;
-  setTorch(false);
+  if(torchAvailable&&torchOn)setTorch(false,true);
   facingMode=facingMode==='environment'?'user':'environment';
   await startCamera();
 }
