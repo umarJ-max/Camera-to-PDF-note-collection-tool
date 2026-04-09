@@ -154,7 +154,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .opts-row{display:flex;gap:8px;}
 .opt-group{flex:1;display:flex;flex-direction:column;gap:4px;}
 .opt-label{font-size:0.67rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:var(--mono);}
-select,input[type=text]{background:var(--card);border:1px solid var(--border2);color:var(--text);border-radius:var(--r-xs);padding:9px 10px;font-size:0.83rem;font-family:var(--ff);outline:none;width:100%;transition:border-color 0.15s;-webkit-appearance:none;appearance:none;}
+select,input[type=text]{background:var(--card);border:1px solid var(--border2);color:var(--text);border-radius:var(--r-xs);padding:9px 10px;font-size:0.83rem;font-family:var(--ff);outline:none;width:100%;transition:border-color 0.15s;-webkit-appearance:none;appearance:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 select:focus,input[type=text]:focus{border-color:var(--accent);}
 input[type=text]::placeholder{color:var(--muted);}
 .fname-row{display:flex;gap:8px;align-items:flex-end;}
@@ -277,10 +277,20 @@ canvas{display:none;}
   <div class="review-grid" id="reviewGrid"></div>
 
   <div class="review-footer">
+    <div class="opts-row">
+      <div class="opt-group">
+        <span class="opt-label">Page size</span>
+        <select id="selSize"><option value="a4">A4</option><option value="letter">Letter</option><option value="a5">A5</option></select>
+      </div>
+      <div class="opt-group">
+        <span class="opt-label">Orientation</span>
+        <select id="selOrient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select>
+      </div>
+    </div>
     <div class="fname-row">
       <div class="fname-group opt-group">
         <span class="opt-label">Filename</span>
-        <input type="text" id="fname" placeholder="my-notes" value="my-notes"/>
+        <input type="text" id="fname" placeholder="my-notes" value="my-notes" maxlength="60"/>
       </div>
     </div>
     <div class="pdf-progress" id="pdfProgress">
@@ -327,8 +337,8 @@ function hideDown(el){el.classList.add('screen-hidden');el.classList.remove('scr
 function hideUp(el){el.classList.add('screen-gone');el.classList.remove('screen-hidden');}
 
 async function goCamera(){hideUp(sHome);hideUp(sRev);show(sCam);await startCamera();}
-function leaveCamera(){setTorch(false);stopCamera();hideDown(sCam);show(sHome);}
-function goReview(){setTorch(false);stopCamera();hideDown(sCam);renderReview();show(sRev);}
+function leaveCamera(){if(torchAvailable&&torchOn)setTorch(false,true);stopCamera();hideDown(sCam);show(sHome);}
+function goReview(){if(torchAvailable&&torchOn)setTorch(false,true);stopCamera();hideDown(sCam);renderReview();show(sRev);}
 
 // ── CAMERA ──
 async function startCamera(){
@@ -378,7 +388,7 @@ async function toggleTorch(){
   await setTorch(!torchOn);
 }
 
-async function setTorch(on){
+async function setTorch(on, silent=false){
   if(!stream)return;
   const track=stream.getVideoTracks()[0];
   if(!track)return;
@@ -388,7 +398,7 @@ async function setTorch(on){
     if(on){
       btnTorch.classList.add('torch-on');
       torchLabel.textContent='ON';
-      toast('Flashlight on 💡','ok');
+      if(!silent) toast('Flashlight on 💡','ok');
     }else{
       btnTorch.classList.remove('torch-on');
       torchLabel.textContent='OFF';
@@ -396,7 +406,7 @@ async function setTorch(on){
   }catch(e){
     torchAvailable=false;
     btnTorch.classList.add('torch-na');
-    toast('Torch not supported here','warn');
+    if(!silent) toast('Torch not supported here','warn');
     console.warn(e);
   }
 }
@@ -516,31 +526,26 @@ function rotatePhoto(id){
 async function exportPDF(){
   if(!photos.length)return;
   const{jsPDF}=window.jspdf;
+  const size=document.getElementById('selSize').value;
+  const orient=document.getElementById('selOrient').value;
   const name=(document.getElementById('fname').value.trim()||'my-notes')+'.pdf';
   btnPDF.disabled=true; pdfProgress.classList.add('on');
-
-  // Build pages first so we know each image's real dimensions
-  const pages=await Promise.all(photos.map(p=>new Promise(res=>{
-    const img=new Image();
-    img.onload=()=>res({img,w:img.naturalWidth,h:img.naturalHeight});
-    img.src=p.dataUrl;
-  })));
-
-  // Use first image dimensions to init doc (px → mm at 96dpi)
-  const px2mm=px=>px*25.4/96;
-  const {w:fw,h:fh}=pages[0];
-  const doc=new jsPDF({orientation:fw>=fh?'landscape':'portrait',unit:'mm',format:[px2mm(fw),px2mm(fh)]});
-
-  for(let i=0;i<pages.length;i++){
-    pdfFill.style.width=Math.round(((i+1)/pages.length)*100)+'%';
-    pdfTxt.textContent=Math.round(((i+1)/pages.length)*100)+'%';
-    const{img,w,h}=pages[i];
-    const pw=px2mm(w),ph=px2mm(h);
-    if(i>0) doc.addPage([pw,ph], pw>=ph?'landscape':'portrait');
-    doc.addImage(img,'JPEG',0,0,pw,ph,'','FAST');
+  const doc=new jsPDF({orientation:orient,unit:'mm',format:size});
+  const pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight();
+  for(let i=0;i<photos.length;i++){
+    const pct=Math.round(((i+1)/photos.length)*100);
+    pdfFill.style.width=pct+'%'; pdfTxt.textContent=pct+'%';
+    if(i>0)doc.addPage();
+    await new Promise(res=>{
+      const img=new Image();
+      img.onload=()=>{
+        // Full bleed — image fills entire page, no white borders
+        doc.addImage(img,'JPEG',0,0,pw,ph,'','FAST');res();
+      };
+      img.src=photos[i].dataUrl;
+    });
     await new Promise(r=>setTimeout(r,0));
   }
-
   doc.save(name);
   pdfProgress.classList.remove('on');pdfFill.style.width='0%';
   btnPDF.disabled=false;
