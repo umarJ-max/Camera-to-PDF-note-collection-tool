@@ -1,4 +1,4 @@
-const CACHE = 'snapnotes-v2';
+const CACHE = 'snapnotes-v3';
 const ASSETS = [
   '/',
   '/index.html',
