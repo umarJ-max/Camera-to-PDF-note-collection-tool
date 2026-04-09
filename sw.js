@@ -1,12 +1,9 @@
-const CACHE = 'snapnotes-v3';
+const CACHE = 'snapnotes-v2';
 const ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json',
   '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/icon-1024.png',
-  '/icons/apple-touch-icon.png'
+  '/icons/icon-512.png'
 ];
 
 self.addEventListener('install', e => {
