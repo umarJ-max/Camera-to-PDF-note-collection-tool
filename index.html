@@ -151,8 +151,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
 /* PDF footer */
 .review-footer{background:var(--surface);border-top:1px solid var(--border);padding:13px 16px 11px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;}
-.opts-row{display:flex;gap:8px;}
-.opt-group{flex:1;display:flex;flex-direction:column;gap:4px;}
+.opt-group{display:flex;flex-direction:column;gap:4px;}
 .opt-label{font-size:0.67rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:var(--mono);}
 select,input[type=text]{background:var(--card);border:1px solid var(--border2);color:var(--text);border-radius:var(--r-xs);padding:9px 10px;font-size:0.83rem;font-family:var(--ff);outline:none;width:100%;transition:border-color 0.15s;-webkit-appearance:none;appearance:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 select:focus,input[type=text]:focus{border-color:var(--accent);}
@@ -277,16 +276,6 @@ canvas{display:none;}
   <div class="review-grid" id="reviewGrid"></div>
 
   <div class="review-footer">
-    <div class="opts-row">
-      <div class="opt-group">
-        <span class="opt-label">Page size</span>
-        <select id="selSize"><option value="a4">A4</option><option value="letter">Letter</option><option value="a5">A5</option></select>
-      </div>
-      <div class="opt-group">
-        <span class="opt-label">Orientation</span>
-        <select id="selOrient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select>
-      </div>
-    </div>
     <div class="fname-row">
       <div class="fname-group opt-group">
         <span class="opt-label">Filename</span>
@@ -526,8 +515,8 @@ function rotatePhoto(id){
 async function exportPDF(){
   if(!photos.length)return;
   const{jsPDF}=window.jspdf;
-  const size=document.getElementById('selSize').value;
-  const orient=document.getElementById('selOrient').value;
+  const size='a4';
+  const orient='portrait';
   const name=(document.getElementById('fname').value.trim()||'my-notes')+'.pdf';
   btnPDF.disabled=true; pdfProgress.classList.add('on');
   const doc=new jsPDF({orientation:orient,unit:'mm',format:size});
